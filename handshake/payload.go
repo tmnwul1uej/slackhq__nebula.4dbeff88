@@ -119,7 +119,7 @@ func unmarshalPayloadDetails(p *Payload, b []byte) error {
 			if n < 0 {
 				return errInvalidHandshakeDetails
 			}
-			p.Cert = append(p.Cert, v...)
+			p.Cert = append([]byte(nil), v...)
 			b = b[n:]
 		case fieldInitiatorIndex:
 			if typ != protowire.VarintType {
@@ -129,7 +129,7 @@ func unmarshalPayloadDetails(p *Payload, b []byte) error {
 			if n < 0 || v > math.MaxUint32 {
 				return errInvalidHandshakeDetails
 			}
-			p.ResponderIndex = uint32(v)
+			p.InitiatorIndex = uint32(v)
 			b = b[n:]
 		case fieldResponderIndex:
 			if typ != protowire.VarintType {
@@ -139,7 +139,7 @@ func unmarshalPayloadDetails(p *Payload, b []byte) error {
 			if n < 0 || v > math.MaxUint32 {
 				return errInvalidHandshakeDetails
 			}
-			p.InitiatorIndex = uint32(v)
+			p.ResponderIndex = uint32(v)
 			b = b[n:]
 		case fieldTime:
 			if typ != protowire.VarintType {
@@ -156,7 +156,7 @@ func unmarshalPayloadDetails(p *Payload, b []byte) error {
 				return errInvalidHandshakeDetails
 			}
 			v, n := protowire.ConsumeVarint(b)
-			if n < 0 || v >= math.MaxUint32 {
+			if n < 0 || v > math.MaxUint32 {
 				return errInvalidHandshakeDetails
 			}
 			p.CertVersion = uint32(v)
