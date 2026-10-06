@@ -91,7 +91,7 @@ func signCert(args []string, out io.Writer, errOut io.Writer, pr PasswordReader)
 
 	var v4Networks []netip.Prefix
 	var v6Networks []netip.Prefix
-	if *sf.ip != "" {
+	if *sf.networks == "" && *sf.ip != "" {
 		// Pull up deprecated -ip flag if needed
 		*sf.networks = *sf.ip
 	}
@@ -193,11 +193,12 @@ func signCert(args []string, out io.Writer, errOut io.Writer, pr PasswordReader)
 	}
 
 	if version == 0 {
-		version = cert.Version2
+		version = caCert.Version()
 	}
 
+	// if no duration is given, expire one second before the root expires
 	if *sf.duration <= 0 {
-		*sf.duration = time.Until(caCert.NotAfter())
+		*sf.duration = time.Until(caCert.NotAfter()) - time.Second*1
 	}
 
 	if *sf.networks != "" {
@@ -303,7 +304,8 @@ func signCert(args []string, out io.Writer, errOut io.Writer, pr PasswordReader)
 
 	switch version {
 	case cert.Version1:
-		if len(v4Networks) == 0 {
+		// Make sure we have only one ipv4 address
+		if len(v4Networks) != 1 {
 			return newHelpErrorf("invalid -networks definition: v1 certificates can only have a single ipv4 address")
 		}
 
@@ -383,7 +385,7 @@ func signCert(args []string, out io.Writer, errOut io.Writer, pr PasswordReader)
 			}
 		}
 
-		err = writeOutput(*sf.outKeyPath, cert.MarshalPrivateKeyToPEM(curve, rawPriv), 0644, out)
+		err = writeOutput(*sf.outKeyPath, cert.MarshalPrivateKeyToPEM(curve, rawPriv), 0600, out)
 		if err != nil {
 			return fmt.Errorf("error while writing out-key: %s", err)
 		}
